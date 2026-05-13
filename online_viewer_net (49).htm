@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial - Presencialidad</title>
+    <style>
+        :root {
+            --primary: #0f2537;
+            --secondary: #005b9f;
+            --background: #f4f7f9;
+            --surface: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border: #e0e6ed;
+            --status-active-bg: #e6f4ea;
+            --status-active-text: #1e8e3e;
+            --status-inactive-bg: #f8f9fa;
+            --status-inactive-text: #adb5bd;
+            --btn-hover: #00467a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            padding: 2rem;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            padding: 1.5rem 2rem;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dashboard-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Nueva Sección de Filtros --- */
+        .filter-section {
+            padding: 1.5rem 2rem;
+            background-color: #fafbfc;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .filter-control {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background-color: var(--surface);
+            color: var(--text-main);
+        }
+
+        .filter-control:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(0, 91, 159, 0.1);
+        }
+
+        .btn-reset {
+            padding: 0.6rem 1.2rem;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            height: 38px;
+        }
+
+        .btn-reset:hover { background-color: var(--btn-hover); }
+
+        /* --- Tabla --- */
+        .table-responsive { width: 100%; overflow-x: auto; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        
+        thead { background-color: #f1f5f9; color: var(--text-muted); border-bottom: 2px solid var(--border); }
+        
+        th { padding: 1rem 1.5rem; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+        
+        td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+        
+        tbody tr:hover { background-color: #f8fafc; }
+
+        .badge-cola {
+            display: inline-block;
+            padding: 0.3rem 0.7rem;
+            background-color: #eef2f6;
+            color: var(--secondary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 80px;
+        }
+
+        .status-oficina { background-color: var(--status-active-bg); color: var(--status-active-text); }
+        .status-empty { background-color: var(--status-inactive-bg); color: var(--status-inactive-text); }
+        .col-name { font-weight: 500; color: var(--primary); }
+        
+        .no-results { text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic; }
+        .summary-text { padding: 1rem 2rem; font-size: 0.85rem; color: var(--text-muted); background-color: white;}
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="dashboard-title">Control de Presencialidad</div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="searchName">Buscar Colaborador</label>
+                <input type="text" id="searchName" class="filter-control" placeholder="Escribe un nombre...">
+            </div>
+            <div class="filter-group">
+                <label for="filterCola">Departamento</label>
+                <select id="filterCola" class="filter-control">
+                    <option value="Todas">Todos los departamentos</option>
+                    <option value="Oficinas Centrales">Oficinas Centrales</option>
+                    <option value="Tecki">Tecki</option>
+                    <option value="Llamadas salientes">Llamadas salientes</option>
+                    <option value="Servicio Tecnico">Servicio Tecnico</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterDay">Día en Oficina</label>
+                <select id="filterDay" class="filter-control">
+                    <option value="Todos">Cualquier día</option>
+                    <option value="0">Lunes</option>
+                    <option value="1">Martes</option>
+                    <option value="2">Miércoles</option>
+                    <option value="3">Jueves</option>
+                    <option value="4">Viernes</option>
+                </select>
+            </div>
+            <button class="btn-reset" onclick="resetFilters()">Limpiar Filtros</button>
+        </div>
+        
+        <div class="summary-text" id="summaryText">Mostrando todos los registros.</div>
+
+        <div class="table-responsive">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Departamento</th>
+                        <th>Colaborador</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            { cola: "Oficinas Centrales", nombre: "Katya Vannesa Cabrera Morales", dias: ["Oficina", "Oficina", "", "", "Oficina"] },
+            { cola: "Oficinas Centrales", nombre: "Marelyn Celeste Tobar Piche", dias: ["Oficina", "Oficina", "Oficina", "Oficina", "Oficina"] },
+            { cola: "Oficinas Centrales", nombre: "Leslie Alejandra Miranda Urizar", dias: ["Oficina", "Oficina", "Oficina", "Oficina", "Oficina"] },
+            { cola: "Oficinas Centrales", nombre: "Wilmer Israel Hernandez Quiskinay", dias: ["", "", "", "", ""] },
+            { cola: "Oficinas Centrales", nombre: "Doris Azucena Carreto Mejia", dias: ["", "", "Oficina", "Oficina", ""] },
+            { cola: "Oficinas Centrales", nombre: "Dayanna Mishell Polanco Pineda", dias: ["", "", "", "", ""] },
+            { cola: "Oficinas Centrales", nombre: "Estefany Mishell Hernandez Perez", dias: ["Oficina", "", "", "", "Oficina"] },
+            { cola: "Oficinas Centrales", nombre: "Karen Mireyda Lopez De Leon", dias: ["Oficina", "Oficina", "Oficina", "Oficina", "Oficina"] },
+            { cola: "Oficinas Centrales", nombre: "Luis Pedro Rodriguez", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Oficinas Centrales", nombre: "Andrea Marcella Liques Alvarado", dias: ["", "Oficina", "", "", "Oficina"] },
+            { cola: "Oficinas Centrales", nombre: "Jose Emanuel Bran Hernandez", dias: ["", "", "", "", ""] },
+            { cola: "Oficinas Centrales", nombre: "Dulce Mariela Morales Hernandez", dias: ["", "", "Oficina", "Oficina", ""] },
+            { cola: "Oficinas Centrales", nombre: "Josue Emmanuel Boche Castillo", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Oficinas Centrales", nombre: "Rolando Anibal Argueta Coronado", dias: ["", "", "Oficina", "Oficina", ""] },
+            { cola: "Tecki", nombre: "Bryan Paz", dias: ["", "Oficina", "Oficina", "", ""] },
+            { cola: "Tecki", nombre: "Geydi Carina Cruz", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "Llamadas salientes", nombre: "Monica Lajpop", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Llamadas salientes", nombre: "Celeste Maria Rojas", dias: ["", "", "Oficina", "Oficina", ""] },
+            { cola: "Llamadas salientes", nombre: "Maite Alessandra Barrera", dias: ["Oficina", "", "Oficina", "", "Oficina"] },
+            { cola: "Llamadas salientes", nombre: "Denilson Suchite", dias: ["", "Oficina", "Oficina", "", ""] },
+            { cola: "Llamadas salientes", nombre: "Hugo Hernadez", dias: ["", "", "Oficina", "Oficina", ""] },
+            { cola: "Llamadas salientes", nombre: "Amy Rivas", dias: ["", "Oficina", "Oficina", "", ""] },
+            { cola: "Llamadas salientes", nombre: "Vernick Gudiel", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "Llamadas salientes", nombre: "Claudia Quelex", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "Servicio Tecnico", nombre: "Kristian Enrique Aguilar Cardenas", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Servicio Tecnico", nombre: "Jessica Jeannette Zabala Pérez", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Servicio Tecnico", nombre: "Andrea Patricia Amaya Ortiz", dias: ["", "", "Oficina", "Oficina", ""] },
+            { cola: "Servicio Tecnico", nombre: "Dany Alexis Lopez Escalante", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "Servicio Tecnico", nombre: "Christian Vinicio Valdez Ramirez", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Servicio Tecnico", nombre: "Anndy Estuardo Quiñonez Ramirez", dias: ["Oficina", "", "Oficina", "", ""] },
+            { cola: "Servicio Tecnico", nombre: "Jeysi Luciana Perez Pinto", dias: ["Oficina", "", "", "", "Oficina"] },
+            { cola: "Servicio Tecnico", nombre: "Eddie Josue Barrientos Alvarez", dias: ["", "", "", "Oficina", "Oficina"] }
+        ];
+
+        // Elementos del DOM
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchName');
+        const colaSelect = document.getElementById('filterCola');
+        const daySelect = document.getElementById('filterDay');
+        const summaryText = document.getElementById('summaryText');
+
+        // Función para renderizar el status
+        const renderDay = (status) => {
+            return status.trim().toLowerCase() === 'oficina' 
+                ? `<span class="status-badge status-oficina">Oficina</span>` 
+                : `<span class="status-badge status-empty">-</span>`;
+        };
+
+        // Función principal de renderizado
+        function renderTable(dataToRender) {
+            tableBody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="no-results">No se encontraron colaboradores con estos criterios.</td></tr>`;
+                summaryText.textContent = "0 resultados encontrados.";
+                return;
+            }
+
+            dataToRender.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge-cola">${row.cola}</span></td>
+                    <td class="col-name">${row.nombre}</td>
+                    <td>${renderDay(row.dias[0])}</td>
+                    <td>${renderDay(row.dias[1])}</td>
+                    <td>${renderDay(row.dias[2])}</td>
+                    <td>${renderDay(row.dias[3])}</td>
+                    <td>${renderDay(row.dias[4])}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            summaryText.textContent = `Mostrando ${dataToRender.length} colaborador(es).`;
+        }
+
+        // Lógica de Multi-Filtrado
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const selectedCola = colaSelect.value;
+            const selectedDayIndex = daySelect.value; // "Todos" o "0", "1", "2"...
+
+            const filteredData = data.filter(row => {
+                // 1. Filtro por Nombre
+                const matchName = row.nombre.toLowerCase().includes(searchTerm);
+                
+                // 2. Filtro por Departamento
+                const matchCola = selectedCola === "Todas" || row.cola === selectedCola;
+                
+                // 3. Filtro por Día en Oficina
+                let matchDay = true;
+                if (selectedDayIndex !== "Todos") {
+                    // Solo mostramos si ese día en específico tiene el valor "Oficina"
+                    matchDay = row.dias[parseInt(selectedDayIndex)] === "Oficina";
+                }
+
+                return matchName && matchCola && matchDay;
+            });
+
+            renderTable(filteredData);
+        }
+
+        // Función para reiniciar filtros
+        function resetFilters() {
+            searchInput.value = '';
+            colaSelect.value = 'Todas';
+            daySelect.value = 'Todos';
+            applyFilters();
+        }
+
+        // Event Listeners: Ejecutan el filtro en tiempo real al escribir o cambiar una opción
+        searchInput.addEventListener('input', applyFilters);
+        colaSelect.addEventListener('change', applyFilters);
+        daySelect.addEventListener('change', applyFilters);
+
+        // Render inicial
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable(data);
+        });
+    </script>
+</body>
+</html>
