@@ -53,7 +53,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- Nueva Sección de Filtros --- */
         .filter-section {
             padding: 1.5rem 2rem;
             background-color: #fafbfc;
@@ -110,7 +109,6 @@
 
         .btn-reset:hover { background-color: var(--btn-hover); }
 
-        /* --- Tabla --- */
         .table-responsive { width: 100%; overflow-x: auto; }
         
         table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -131,6 +129,7 @@
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .status-badge {
@@ -170,8 +169,13 @@
                     <option value="Todas">Todos los departamentos</option>
                     <option value="Oficinas Centrales">Oficinas Centrales</option>
                     <option value="Tecki">Tecki</option>
-                    <option value="Llamadas salientes">Llamadas salientes</option>
-                    <option value="Servicio Tecnico">Servicio Tecnico</option>
+                    <option value="Llamadas salientes">Llamadas Salientes</option>
+                    <option value="Servicio Tecnico">Servicio Técnico</option>
+                    <option value="Team Leader">Team Leader</option>
+                    <option value="Redes Sociales">Redes Sociales</option>
+                    <option value="WhatsApp Servicio Técnico">WhatsApp Servicio Técnico</option>
+                    <option value="WhatsApp HelpDesk">WhatsApp HelpDesk</option>
+                    <option value="ChatCommerce">ChatCommerce</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -210,6 +214,7 @@
     </div>
 
     <script>
+        // Matriz consolidada y actualizada con la información del nuevo archivo
         const data = [
             { cola: "Oficinas Centrales", nombre: "Katya Vannesa Cabrera Morales", dias: ["Oficina", "Oficina", "", "", "Oficina"] },
             { cola: "Oficinas Centrales", nombre: "Marelyn Celeste Tobar Piche", dias: ["Oficina", "Oficina", "Oficina", "Oficina", "Oficina"] },
@@ -242,24 +247,31 @@
             { cola: "Servicio Tecnico", nombre: "Christian Vinicio Valdez Ramirez", dias: ["Oficina", "Oficina", "", "", ""] },
             { cola: "Servicio Tecnico", nombre: "Anndy Estuardo Quiñonez Ramirez", dias: ["Oficina", "", "Oficina", "", ""] },
             { cola: "Servicio Tecnico", nombre: "Jeysi Luciana Perez Pinto", dias: ["Oficina", "", "", "", "Oficina"] },
-            { cola: "Servicio Tecnico", nombre: "Eddie Josue Barrientos Alvarez", dias: ["", "", "", "Oficina", "Oficina"] }
+            { cola: "Servicio Tecnico", nombre: "Eddie Josue Barrientos Alvarez", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "Team Leader", nombre: "Jorge Valderramos", dias: ["Oficina", "Oficina", "Oficina", "", ""] },
+            { cola: "Team Leader", nombre: "Mishelle Rodas", dias: ["", "Oficina", "Oficina", "", ""] },
+            { cola: "Redes Sociales", nombre: "Merary Villanueva", dias: ["Oficina", "", "Oficina", "", ""] },
+            { cola: "WhatsApp Servicio Técnico", nombre: "Danna Ramírez", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Redes Sociales", nombre: "Martín Valenzuela", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "WhatsApp HelpDesk", nombre: "Susana Espino", dias: ["", "", "", "Oficina", "Oficina"] },
+            { cola: "ChatCommerce", nombre: "Lucero Xoy", dias: ["", "Oficina", "Oficina", "", ""] },
+            { cola: "WhatsApp HelpDesk", nombre: "Marissa Reyes", dias: ["Oficina", "Oficina", "", "", ""] },
+            { cola: "Redes Sociales", nombre: "Jacqueline Siquibache", dias: ["", "Oficina", "Oficina", "", ""] },
+            { cola: "WhatsApp Servicio Técnico", nombre: "Andrea Ramos", dias: ["", "", "", "Oficina", "Oficina"] }
         ];
 
-        // Elementos del DOM
         const tableBody = document.getElementById('tableBody');
         const searchInput = document.getElementById('searchName');
         const colaSelect = document.getElementById('filterCola');
         const daySelect = document.getElementById('filterDay');
         const summaryText = document.getElementById('summaryText');
 
-        // Función para renderizar el status
         const renderDay = (status) => {
-            return status.trim().toLowerCase() === 'oficina' 
+            return status && status.trim().toLowerCase() === 'oficina' 
                 ? `<span class="status-badge status-oficina">Oficina</span>` 
                 : `<span class="status-badge status-empty">-</span>`;
         };
 
-        // Función principal de renderizado
         function renderTable(dataToRender) {
             tableBody.innerHTML = '';
 
@@ -286,23 +298,21 @@
             summaryText.textContent = `Mostrando ${dataToRender.length} colaborador(es).`;
         }
 
-        // Lógica de Multi-Filtrado
         function applyFilters() {
             const searchTerm = searchInput.value.toLowerCase().trim();
             const selectedCola = colaSelect.value;
-            const selectedDayIndex = daySelect.value; // "Todos" o "0", "1", "2"...
+            const selectedDayIndex = daySelect.value; 
 
             const filteredData = data.filter(row => {
-                // 1. Filtro por Nombre
                 const matchName = row.nombre.toLowerCase().includes(searchTerm);
                 
-                // 2. Filtro por Departamento
-                const matchCola = selectedCola === "Todas" || row.cola === selectedCola;
+                // Limpieza de espacios en blanco en caso de discrepancias en la data
+                const rowCola = row.cola.trim(); 
+                const matchCola = selectedCola === "Todas" || rowCola === selectedCola || 
+                                 (selectedCola === "Llamadas salientes" && rowCola.includes("Llamadas salientes"));
                 
-                // 3. Filtro por Día en Oficina
                 let matchDay = true;
                 if (selectedDayIndex !== "Todos") {
-                    // Solo mostramos si ese día en específico tiene el valor "Oficina"
                     matchDay = row.dias[parseInt(selectedDayIndex)] === "Oficina";
                 }
 
@@ -312,7 +322,6 @@
             renderTable(filteredData);
         }
 
-        // Función para reiniciar filtros
         function resetFilters() {
             searchInput.value = '';
             colaSelect.value = 'Todas';
@@ -320,12 +329,10 @@
             applyFilters();
         }
 
-        // Event Listeners: Ejecutan el filtro en tiempo real al escribir o cambiar una opción
         searchInput.addEventListener('input', applyFilters);
         colaSelect.addEventListener('change', applyFilters);
         daySelect.addEventListener('change', applyFilters);
 
-        // Render inicial
         document.addEventListener('DOMContentLoaded', () => {
             renderTable(data);
         });
